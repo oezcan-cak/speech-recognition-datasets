@@ -1,0 +1,5 @@
+*.csv
+.env
+*.wav
+.venv
+*.zip
