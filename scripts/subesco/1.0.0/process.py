@@ -2,23 +2,23 @@ import numpy as np
 import os
 from os.path import join
 import pandas as pd
-from sklearn.utils import shuffle
+import sklearn
 from random import randrange
 import shutil
 
-dataset_dir = "dataset"
-audio_dir = join("extracted_files", "SUBESCO")
+DATASET_DIR = "dataset"
+AUDIO_DIR = join("extracted_files", "SUBESCO")
 
 # NOTE: there is a single file which doesn't follow 
 # the convention, since the last value '3]' isn't numeric:
-if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(audio_dir):
+if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(AUDIO_DIR):
   os.rename(
-      join(audio_dir,'F_02_MONIKA_S_2_SURPRISE_3].wav'),
-      join(audio_dir,'F_02_MONIKA_S_2_SURPRISE_3.wav')
+      join(AUDIO_DIR,'F_02_MONIKA_S_2_SURPRISE_3].wav'),
+      join(AUDIO_DIR,'F_02_MONIKA_S_2_SURPRISE_3.wav')
   )
 
 # create DataFrame containing audio files
-filenames = os.listdir(audio_dir)
+filenames = os.listdir(AUDIO_DIR)
 df = pd.DataFrame(data={"file":filenames})
 
 # define maps and functions to normalize labels
@@ -49,17 +49,18 @@ test_speakers = np.random.choice(speakers, size=4, replace=False)
 train_speakers = [sp for sp in speakers if not sp in test_speakers]
 
 # shuffle dataframe
-shuffled_df = shuffle(df, random_state=42)
+shuffled_df = sklearn.utils.shuffle(df, random_state=42)
 
 # split data into train/test dataframes
 test_df = shuffled_df[shuffled_df.speaker.isin(test_speakers)]
 train_df = shuffled_df[shuffled_df.speaker.isin(train_speakers)]
 
+# move files
 def move_files(dataframe, destination):
   if not os.path.exists(destination):
     os.makedirs(destination)
   for file in dataframe["file"]:
-    src = join(audio_dir, file)
+    src = join(AUDIO_DIR, file)
     shutil.copy2(src, destination)
     # shutil.move(src, destination)
 
