@@ -35,11 +35,10 @@ emotion_map = {
 }
 
 # set columns
-# NOTE: `.map(gender_map)` doesn't raise error if key isn't in dict => use lambda!
-df["gender"] = df.file.str.split("_").map(lambda x: gender_map[x[0]])
-df["speaker_number"] = df.file.str.split("_").str[0:2].str.join("_") # NOTE: see paper
 df["speaker"] = df.file.str.split("_").str[2]
 df["sentence"] = df.file.str.split("_").str[3:5].str.join("_")
+df["gender"] = df.file.str.split("_").map(lambda x: gender_map[x[0]])
+df["speaker_number"] = df.file.str.split("_").str[0:2].str.join("_") # NOTE: see paper
 df["emotion"] = df.file.str.split("_").str[5].map(lambda x: emotion_map[x])
 df["take"] = df.file.str.split("_").str[6].str[0]
 
@@ -62,14 +61,14 @@ def move_files(dataframe, destination):
     os.makedirs(destination)
   for file in dataframe["file"]:
     src = join(audio_dir, file)
-    shutil.copy2(src, destination)
-    # shutil.move( join(src, file), audio_dir)   
+    # shutil.copy2(src, destination)
+    shutil.move(src, destination)
 
 train_dir = join("dataset", "train")
-# move_files(train_df, train_dir)
+move_files(train_df, train_dir)
 
 test_dir = join("dataset", "test")
-# move_files(test_df, test_dir)
+move_files(test_df, test_dir)
 
 # add file paths
 test_df.file = test_df.file.map(lambda x: join("test", x))
