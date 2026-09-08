@@ -44,7 +44,6 @@ df["take"] = df.file.str.split("_").str[6].str[0]
 
 # create speaker-independent splits
 speakers = df.speaker.unique()
-print(speakers)
 np.random.seed(42)
 test_speakers = np.random.choice(speakers, size=4, replace=False)
 train_speakers = [sp for sp in speakers if not sp in test_speakers]
@@ -61,8 +60,8 @@ def move_files(dataframe, destination):
     os.makedirs(destination)
   for file in dataframe["file"]:
     src = join(audio_dir, file)
-    # shutil.copy2(src, destination)
-    shutil.move(src, destination)
+    shutil.copy2(src, destination)
+    # shutil.move(src, destination)
 
 train_dir = join("dataset", "train")
 move_files(train_df, train_dir)
@@ -71,9 +70,12 @@ test_dir = join("dataset", "test")
 move_files(test_df, test_dir)
 
 # add file paths
-test_df.file = test_df.file.map(lambda x: join("test", x))
-train_df.file = train_df.file.map(lambda x: join("train", x))
+test_df.file = test_df.file.map(lambda x: f"test/{x}")
+train_df.file = train_df.file.map(lambda x: f"train/{x}")
 
 # save tables as csv
-test_df.to_csv("dataset/test.csv", index=False)
-train_df.to_csv("dataset/train.csv", index=False)
+test_path = join("dataset", "test.csv")
+test_df.to_csv(test_path, index=False)
+
+train_path = join("dataset", "train.csv")
+train_df.to_csv(train_path, index=False)
