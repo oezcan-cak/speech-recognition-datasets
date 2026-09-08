@@ -4,8 +4,10 @@ from os.path import join
 import pandas as pd
 from sklearn.utils import shuffle
 from random import randrange
+import shutil
 
-audio_dir = "audios"
+dataset_dir = "dataset"
+audio_dir = join("extracted_files", "SUBESCO")
 
 # NOTE: there is a single file which doesn't follow 
 # the convention, since the last value '3]' isn't numeric:
@@ -16,11 +18,12 @@ if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(audio_dir):
   )
 
 # create DataFrame containing audio files
-paths_to_audios = [f"{audio_dir}/{f}" for f in os.listdir(audio_dir)]
-index = pd.Index(data=paths_to_audios, name="file")
-df = pd.DataFrame(index=index)
+filenames = os.listdir(audio_dir)
+df = pd.DataFrame(data={"filename":filenames})
+paths = df.filename.map(lambda x: join(audio_dir, x))
+df.index = pd.Index(data=paths, name="file")
 
-# define maps to normalize labels
+# define maps and functions to normalize labels
 gender_map = {"M":"male","F":"female"}
 
 emotion_map = {
@@ -33,35 +36,47 @@ emotion_map = {
     'ANGRY' : 'anger',
 }
 
-get_take = lambda x: int(x.replace(".wav",""))
-
 # set columns
 # NOTE: `.map(gender_map)` doesn't raise error if key isn't in dict => use lambda!
-df["gender"] = df.index.str.split("_").str[0].str.split("/").str[1].map(lambda x: gender_map[x])
-df["speaker_number"] = df.index.str.split("_").str[0:2].str.join("_").str.replace("audios/", "") # NOTE: see paper
-df["speaker"] = df.index.str.split("_").str[2]
-df["sentence"] = df.index.str.split("_").str[3:5].str.join("_")
-df["emotion"] = df.index.str.split("_").str[5].map(lambda x: emotion_map[x])
-df["take"] = df.index.str.split("_").str[6].map(get_take)
+df["gender"] = df.filename.str.split("_").map(lambda x: gender_map[x[0]])
+df["speaker_number"] = df.filename.str.split("_").str[0:2].str.join("_") # NOTE: see paper
+df["speaker"] = df.filename.str.split("_").str[2]
+df["sentence"] = df.filename.str.split("_").str[3:5].str.join("_")
+df["emotion"] = df.filename.str.split("_").str[5].map(lambda x: emotion_map[x])
+df["take"] = df.filename.str.split("_").str[6].str[0]
 
-# save files table
-df.to_csv("subesco_files.csv")
-
-# create splits
-speakers = df.speaker.unique() # select speakers randomly
-seed = randrange(1, 10_000)
-np.random.seed(seed)
-test_speakers = np.random.choice(speakers, size=2, replace=False)
+# create speaker-independent splits
+speakers = df.speaker.unique()
+print(speakers)
+np.random.seed(42)
+test_speakers = np.random.choice(speakers, size=4, replace=False)
 train_speakers = [sp for sp in speakers if not sp in test_speakers]
 
 # shuffle dataframe
-random_state = randrange(1, 10_000)
-shuffled_df = shuffle(df, random_state=random_state)
+shuffled_df = shuffle(df, random_state=42)
 
 # split data into train/test dataframes
 test_df = shuffled_df[shuffled_df.speaker.isin(test_speakers)]
 train_df = shuffled_df[shuffled_df.speaker.isin(train_speakers)]
 
+def move_files(dataframe, destination):
+  if not os.path.exists(destination):
+    os.makedirs(destination)
+  index_list = dataframe.index.values.tolist()
+  for file in index_list:
+    shutil.copy2(file, destination)
+    # shutil.move( join(src, file), audio_dir)   
+
+train_dir = join("dataset", "train")
+# move_files(train_df, train_dir)
+
+test_dir = join("dataset", "test")
+# move_files(test_df, test_dir)
+
+# update index
+test_df.index = test_df.filename.map(lambda x: join("test", x))
+train_df.index = train_df.filename.map(lambda x: join("train", x))
+
 # save tables as csv
-test_df["emotion"].to_csv("subesco_emotions_test.csv")
-train_df["emotion"].to_csv("subesco_emotions_train.csv")
+test_df.to_csv("dataset/test.csv")
+train_df.to_csv("dataset/train.csv")
