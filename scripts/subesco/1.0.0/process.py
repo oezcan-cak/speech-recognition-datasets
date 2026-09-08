@@ -19,9 +19,7 @@ if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(audio_dir):
 
 # create DataFrame containing audio files
 filenames = os.listdir(audio_dir)
-df = pd.DataFrame(data={"filename":filenames})
-paths = df.filename.map(lambda x: join(audio_dir, x))
-df.index = pd.Index(data=paths, name="file")
+df = pd.DataFrame(data={"file":filenames})
 
 # define maps and functions to normalize labels
 gender_map = {"M":"male","F":"female"}
@@ -38,12 +36,12 @@ emotion_map = {
 
 # set columns
 # NOTE: `.map(gender_map)` doesn't raise error if key isn't in dict => use lambda!
-df["gender"] = df.filename.str.split("_").map(lambda x: gender_map[x[0]])
-df["speaker_number"] = df.filename.str.split("_").str[0:2].str.join("_") # NOTE: see paper
-df["speaker"] = df.filename.str.split("_").str[2]
-df["sentence"] = df.filename.str.split("_").str[3:5].str.join("_")
-df["emotion"] = df.filename.str.split("_").str[5].map(lambda x: emotion_map[x])
-df["take"] = df.filename.str.split("_").str[6].str[0]
+df["gender"] = df.file.str.split("_").map(lambda x: gender_map[x[0]])
+df["speaker_number"] = df.file.str.split("_").str[0:2].str.join("_") # NOTE: see paper
+df["speaker"] = df.file.str.split("_").str[2]
+df["sentence"] = df.file.str.split("_").str[3:5].str.join("_")
+df["emotion"] = df.file.str.split("_").str[5].map(lambda x: emotion_map[x])
+df["take"] = df.file.str.split("_").str[6].str[0]
 
 # create speaker-independent splits
 speakers = df.speaker.unique()
@@ -62,9 +60,9 @@ train_df = shuffled_df[shuffled_df.speaker.isin(train_speakers)]
 def move_files(dataframe, destination):
   if not os.path.exists(destination):
     os.makedirs(destination)
-  index_list = dataframe.index.values.tolist()
-  for file in index_list:
-    shutil.copy2(file, destination)
+  for file in dataframe["file"]:
+    src = join(audio_dir, file)
+    shutil.copy2(src, destination)
     # shutil.move( join(src, file), audio_dir)   
 
 train_dir = join("dataset", "train")
@@ -73,10 +71,10 @@ train_dir = join("dataset", "train")
 test_dir = join("dataset", "test")
 # move_files(test_df, test_dir)
 
-# update index
-test_df.index = test_df.filename.map(lambda x: join("test", x))
-train_df.index = train_df.filename.map(lambda x: join("train", x))
+# add file paths
+test_df.file = test_df.file.map(lambda x: join("test", x))
+train_df.file = train_df.file.map(lambda x: join("train", x))
 
 # save tables as csv
-test_df.to_csv("dataset/test.csv")
-train_df.to_csv("dataset/train.csv")
+test_df.to_csv("dataset/test.csv", index=False)
+train_df.to_csv("dataset/train.csv", index=False)
