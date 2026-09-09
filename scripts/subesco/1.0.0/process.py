@@ -21,17 +21,17 @@ if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(AUDIO_DIR):
 filenames = os.listdir(AUDIO_DIR)
 df = pd.DataFrame(data={"file":filenames})
 
-# define maps and functions to normalize labels
-gender_map = {"M":"male","F":"female"}
+# define maps
+gender_map = {"M":"male", "F":"female"}
 
 emotion_map = {
-    'SURPRISE' : 'surprise',
-    'NEUTRAL' : 'neutral',
-    'DISGUST' : 'disgust',
-    'HAPPY' : 'happiness',
-    'SAD' : 'sadness',
-    'FEAR' : 'fear',
-    'ANGRY' : 'anger',
+    "SURPRISE" : "surprise",
+    "NEUTRAL" : "neutral",
+    "DISGUST" : "disgust",
+    "HAPPY" : "happiness",
+    "SAD" : "sadness",
+    "FEAR" : "fear",
+    "ANGRY" : "anger",
 }
 
 # set columns
