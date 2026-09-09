@@ -1,3 +1,5 @@
+fastparquet
+numpy
 pandas
 scikit-learn
-numpy
+
