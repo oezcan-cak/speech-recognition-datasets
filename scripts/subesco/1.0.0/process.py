@@ -36,7 +36,7 @@ emotion_map = {
 
 # set columns
 df["speaker"] = df.file.str.split("_").str[2]
-df["sentence"] = df.file.str.split("_").str[3:5].str.join("_")
+df["sentence"] = df.file.str.split("_").str[4]
 df["gender"] = df.file.str.split("_").map(lambda x: gender_map[x[0]])
 df["speaker_number"] = df.file.str.split("_").str[0:2].str.join("_") # NOTE: see paper
 df["emotion"] = df.file.str.split("_").str[5].map(lambda x: emotion_map[x])
@@ -65,18 +65,18 @@ def move_files(dataframe, destination):
     # shutil.move(src, destination)
 
 train_dir = join("dataset", "train")
-move_files(train_df, train_dir)
+# move_files(train_df, train_dir)
 
 test_dir = join("dataset", "test")
-move_files(test_df, test_dir)
+# move_files(test_df, test_dir)
 
 # add file paths
 test_df.file = test_df.file.map(lambda x: f"test/{x}")
 train_df.file = train_df.file.map(lambda x: f"train/{x}")
 
 # save tables as csv
-test_path = join("dataset", "test.csv")
-test_df.to_csv(test_path, index=False)
+test_path = join("dataset", "test.parquet")
+test_df.to_parquet(test_path, index=False, engine="fastparquet")
 
-train_path = join("dataset", "train.csv")
-train_df.to_csv(train_path, index=False)
+train_path = join("dataset", "train.parquet")
+train_df.to_parquet(train_path, index=False, engine="fastparquet")
