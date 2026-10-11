@@ -19,10 +19,10 @@ if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(AUDIO_DIR):
 
 # create DataFrame containing audio files
 filenames = [f for f in os.listdir(AUDIO_DIR) if f.endswith(".wav")]
-df = pd.DataFrame(data={"file":filenames})
+df = pd.DataFrame(data={"file_name": filenames})
 
 # define maps
-gender_map = {"M":"male", "F":"female"}
+gender_map = {"M": "male", "F": "female"}
 
 emotion_map = {
     "SURPRISE" : "surprise",
@@ -35,12 +35,12 @@ emotion_map = {
 }
 
 # set columns
-df["speaker"] = df.file.str.split("_").str[2]
-df["sentence"] = df.file.str.split("_").str[4]
-df["gender"] = df.file.str.split("_").map(lambda x: gender_map[x[0]])
-df["speaker_number"] = df.file.str.split("_").str[0:2].str.join("_") # NOTE: see paper
-df["emotion"] = df.file.str.split("_").str[5].map(lambda x: emotion_map[x])
-df["take"] = df.file.str.split("_").str[6].str[0]
+df["speaker"] = df.file_name.str.split("_").str[2]
+df["sentence"] = df.file_name.str.split("_").str[4]
+df["gender"] = df.file_name.str.split("_").map(lambda x: gender_map[x[0]])
+df["speaker_number"] = df.file_name.str.split("_").str[0:2].str.join("_") # NOTE: see paper
+df["emotion"] = df.file_name.str.split("_").str[5].map(lambda x: emotion_map[x])
+df["take"] = df.file_name.str.split("_").str[6].str[0]
 
 # create speaker-independent splits
 speakers = df.speaker.unique()
@@ -57,7 +57,7 @@ train_df = shuffled_df[shuffled_df.speaker.isin(train_speakers)]
 
 # move files
 def move_files(dataframe, destination):
-  for file in dataframe["file"]:
+  for file in dataframe["file_name"]:
     src = join(AUDIO_DIR, file)
     shutil.copy2(src, destination) # shutil.move
 
@@ -71,13 +71,9 @@ for destination in [train_dir, test_dir]:
 move_files(train_df, train_dir)
 move_files(test_df, test_dir)
 
-# add file paths
-test_df.file = test_df.file.map(lambda x: f"test/{x}")
-train_df.file = train_df.file.map(lambda x: f"train/{x}")
-
 # save tables as csv
-test_path = join("dataset", "test.parquet")
+test_path = join("dataset", "test", "metadata.parquet")
 test_df.to_parquet(test_path, index=False, engine="fastparquet")
 
-train_path = join("dataset", "train.parquet")
+train_path = join("dataset", "train", "metadata.parquet")
 train_df.to_parquet(train_path, index=False, engine="fastparquet")
