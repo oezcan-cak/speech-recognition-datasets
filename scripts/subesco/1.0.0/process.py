@@ -18,7 +18,7 @@ if 'F_02_MONIKA_S_2_SURPRISE_3].wav' in os.listdir(AUDIO_DIR):
   )
 
 # create DataFrame containing audio files
-filenames = os.listdir(AUDIO_DIR)
+filenames = [f for f in os.listdir(AUDIO_DIR) if f.endswith(".wav")]
 df = pd.DataFrame(data={"file":filenames})
 
 # define maps
@@ -57,18 +57,19 @@ train_df = shuffled_df[shuffled_df.speaker.isin(train_speakers)]
 
 # move files
 def move_files(dataframe, destination):
-  if not os.path.exists(destination):
-    os.makedirs(destination)
   for file in dataframe["file"]:
     src = join(AUDIO_DIR, file)
-    shutil.copy2(src, destination)
-    # shutil.move(src, destination)
+    shutil.copy2(src, destination) # shutil.move
 
 train_dir = join("dataset", "train")
-# move_files(train_df, train_dir)
-
 test_dir = join("dataset", "test")
-# move_files(test_df, test_dir)
+
+for destination in [train_dir, test_dir]:
+  if not os.path.exists(destination):
+      os.makedirs(destination)
+
+move_files(train_df, train_dir)
+move_files(test_df, test_dir)
 
 # add file paths
 test_df.file = test_df.file.map(lambda x: f"test/{x}")
