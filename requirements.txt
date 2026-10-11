@@ -1,5 +1,5 @@
 fastparquet
+huggingface_hub
 numpy
 pandas
 scikit-learn
-
